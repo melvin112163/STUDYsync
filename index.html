@@ -391,13 +391,14 @@
         </div>
       </div>
 
+      <p class="error-msg" id="form-error">Couldn't reach the backend.</p>
       <button type="submit" class="primary">Add to calendar</button>
     </form>
 
     <div class="docket" id="docket">
       <p class="docket-title">Entry recorded</p>
       <p class="docket-entry" id="docket-entry"></p>
-      <p class="note">This is still the Phase 1 interface — it isn't connected to Google Calendar yet, and accounts aren't in a real database yet either. Both arrive when we build the Python/FastAPI backend.</p>
+      <p class="note">This event was saved on your Python backend. It's still not connected to Google Calendar yet, and accounts aren't in a real database yet either — those are still ahead.</p>
     </div>
   </div>
 
@@ -506,7 +507,14 @@
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   }
 
-  form.addEventListener('submit', function (e) {
+  // Your backend's address. This only works while the server is running
+  // on this same computer — once we deploy it, this becomes a real URL.
+  const API_URL = 'http://127.0.0.1:8000';
+
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const formError = document.getElementById('form-error');
+
+  form.addEventListener('submit', async function (e) {
     e.preventDefault();
 
     const title = document.getElementById('title').value;
@@ -514,11 +522,36 @@
     const start = document.getElementById('start').value;
     const end = document.getElementById('end').value;
 
-    docketEntry.innerHTML =
-      title + '<br>' +
-      '<span>' + formatDate(date) + ' · ' + formatTime(start) + '–' + formatTime(end) + '</span>';
+    formError.classList.remove('visible');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Adding…';
 
-    docket.classList.add('visible');
+    try {
+      const response = await fetch(API_URL + '/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, date, start, end })
+      });
+
+      if (!response.ok) {
+        throw new Error('Server error');
+      }
+
+      await response.json();
+
+      docketEntry.innerHTML =
+        title + '<br>' +
+        '<span>' + formatDate(date) + ' · ' + formatTime(start) + '–' + formatTime(end) + '</span>';
+
+      docket.classList.add('visible');
+      form.reset();
+    } catch (err) {
+      formError.textContent = "Couldn't reach the backend — make sure your local server is running.";
+      formError.classList.add('visible');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Add to calendar';
+    }
   });
 </script>
 
