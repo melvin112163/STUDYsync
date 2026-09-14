@@ -422,6 +422,9 @@
   const currentUserLabel = document.getElementById('current-user');
   const signoutBtn = document.getElementById('signout-btn');
 
+  // Your backend's address. 
+  const API_URL = 'http://127.0.0.1:8000';
+
   function showApp(name) {
     currentUser = name;
     currentUserLabel.textContent = name;
@@ -483,13 +486,15 @@
     showApp(user.name);
   });
 
-  googleBtn.addEventListener('click', () => {
-    showApp('you@gmail.com (Google)');
+  googleBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    // This sends the user to your real Python backend!
+    window.location.href = API_URL + "/auth/login";
   });
 
   signoutBtn.addEventListener('click', showAuth);
 
-  // ---- Event form (same as Phase 1) ----
+  // ---- Event form ----
   const form = document.getElementById('event-form');
   const docket = document.getElementById('docket');
   const docketEntry = document.getElementById('docket-entry');
@@ -506,10 +511,6 @@
     date.setHours(h, m);
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   }
-
-  // Your backend's address. This only works while the server is running
-  // on this same computer — once we deploy it, this becomes a real URL.
-  const API_URL = 'http://127.0.0.1:8000';
 
   const submitBtn = form.querySelector('button[type="submit"]');
   const formError = document.getElementById('form-error');
@@ -551,6 +552,21 @@
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Add to calendar';
+    }
+  });
+
+  // ---- Check Google Login Status on Page Load ----
+  window.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const response = await fetch(API_URL + '/auth/status');
+      const data = await response.json();
+      
+      if (data.connected) {
+        // If backend says we are connected to Google, skip login screen
+        showApp("Google User"); 
+      }
+    } catch (err) {
+      console.log("Not connected to backend or not logged in yet.");
     }
   });
 </script>
