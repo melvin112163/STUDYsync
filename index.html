@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google-site-verification" content="7ju-k5PaS02tQj6IzNHw9TDfsmOup9Cg5MzkJWEJ9GQ" />
 <title>StudySync</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -268,7 +269,7 @@
     font-size: 13px;
   }
 
-  .divider::before, .divider::after {
+  .divider::after, .divider::before {
     content: '';
     flex: 1;
     height: 1px;
@@ -306,8 +307,8 @@
   <div class="view active" id="view-auth">
     <header>
       <p class="eyebrow">StudySync</p>
-      <h1 id="auth-heading">Welcome back</h1>
-      <p class="lede" id="auth-lede">Sign in to add study sessions to your calendar.</p>
+      <h1 id="auth-heading">Welcome to StudySync</h1>
+      <p class="lede" id="auth-lede">StudySync is a productivity tool to schedule study sessions and synchronize them to your Google Calendar.</p>
     </header>
 
     <div class="tabs">
@@ -405,7 +406,6 @@
 </div>
 
 <script>
-  // ---- Mock in-memory "database" (Phase 1 only — real DB comes with the backend) ----
   const mockUsers = {};
   let currentUser = null;
 
@@ -422,7 +422,6 @@
   const currentUserLabel = document.getElementById('current-user');
   const signoutBtn = document.getElementById('signout-btn');
 
-  // Your backend's address. 
   const API_URL = 'https://studysync-backend-xua7.onrender.com';
 
   function showApp(name) {
@@ -450,9 +449,9 @@
       signinError.classList.remove('visible');
       signupError.classList.remove('visible');
 
-      authHeading.textContent = isSignin ? 'Welcome back' : 'Create your account';
+      authHeading.textContent = isSignin ? 'Welcome to StudySync' : 'Create your account';
       authLede.textContent = isSignin
-        ? 'Sign in to add study sessions to your calendar.'
+        ? 'StudySync is a productivity tool to schedule study sessions and synchronize them to your Google Calendar.'
         : 'Sign up to start saving study sessions to your calendar.';
     });
   });
@@ -488,13 +487,11 @@
 
   googleBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    // This sends the user to your real Python backend!
     window.location.href = API_URL + "/auth/login";
   });
 
   signoutBtn.addEventListener('click', showAuth);
 
-  // ---- Event form ----
   const form = document.getElementById('event-form');
   const docket = document.getElementById('docket');
   const docketEntry = document.getElementById('docket-entry');
@@ -538,14 +535,12 @@
         throw new Error('Server error');
       }
 
-      // 1. Capture the actual data coming back from your Python backend
       const data = await response.json(); 
 
       docketEntry.innerHTML =
         title + '<br>' +
         '<span>' + formatDate(date) + ' · ' + formatTime(start) + '–' + formatTime(end) + '</span>';
 
-      // 2. Replace the old mock text with the real Google Calendar link!
       const noteElement = docket.querySelector('.note');
       if (data.event && data.event.google_calendar_link) {
           noteElement.innerHTML = `<a href="${data.event.google_calendar_link}" target="_blank" style="color: var(--rule-red); text-decoration: underline; text-underline-offset: 2px;">View this event in your Google Calendar ↗</a>`;
@@ -556,7 +551,7 @@
       docket.classList.add('visible');
       form.reset();
     } catch (err) {
-      formError.textContent = "Couldn't reach the backend — make sure your local server is running.";
+      formError.textContent = "Couldn't reach the backend — make sure your live server is running.";
       formError.classList.add('visible');
     } finally {
       submitBtn.disabled = false;
@@ -564,14 +559,12 @@
     }
   });
 
-  // ---- Check Google Login Status on Page Load ----
   window.addEventListener('DOMContentLoaded', async () => {
     try {
       const response = await fetch(API_URL + '/auth/status');
       const data = await response.json();
       
       if (data.connected) {
-        // If backend says we are connected to Google, skip login screen
         showApp("Google User"); 
       }
     } catch (err) {
