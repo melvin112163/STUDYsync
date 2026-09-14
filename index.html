@@ -538,11 +538,20 @@
         throw new Error('Server error');
       }
 
-      await response.json();
+      // 1. Capture the actual data coming back from your Python backend
+      const data = await response.json(); 
 
       docketEntry.innerHTML =
         title + '<br>' +
         '<span>' + formatDate(date) + ' · ' + formatTime(start) + '–' + formatTime(end) + '</span>';
+
+      // 2. Replace the old mock text with the real Google Calendar link!
+      const noteElement = docket.querySelector('.note');
+      if (data.event && data.event.google_calendar_link) {
+          noteElement.innerHTML = `<a href="${data.event.google_calendar_link}" target="_blank" style="color: var(--rule-red); text-decoration: underline; text-underline-offset: 2px;">View this event in your Google Calendar ↗</a>`;
+      } else {
+          noteElement.innerHTML = "Event successfully added to your calendar!";
+      }
 
       docket.classList.add('visible');
       form.reset();
